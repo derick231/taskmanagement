@@ -1,28 +1,30 @@
-import "dotenv/config"
-import express from 'express'
-import cors from 'cors'
+import "dotenv/config";
+import express from "express";
+import cors from "cors";
 
-const app = express()
+const app = express();
 
-const PORT = process.env.PORT 
+const PORT = process.env.PORT;
 
 //Middleware
-app.use(cors({
-    origin: "*", // Allow all origins
+app.use(
+  cors({
+    origin: ["http://localhost:3000", "http://localhost:5173", "*"], // Allow all origins
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"]
-}))
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-app.use(express.json())
-app.use(express.urlencoded({extended:false}))
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
-app.get("/", (req,res)=>{
-    return res.send("Hello World!")
-})
+app.get("/", (req, res) => {
+  return res.send("Hello World!");
+});
 
 // Routes
-import routes from './routes/index.js'
+import routes from "./routes/index.js";
 
-app.use (routes)
+app.use(routes);
 
-app.listen(PORT, ()=> console.log(`Server is running at PORT ${PORT}`))
+app.listen(PORT, () => console.log(`Server is running at PORT ${PORT}`));
