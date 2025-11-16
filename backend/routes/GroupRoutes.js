@@ -1,9 +1,26 @@
 import { Router } from "express";
-import { createGroup, getGroupsByWorkspace } from "../Controller/GroupController.js";
+import { authenticateToken } from "../middleware/authMiddleware.js";
 
-const router = Router()
+import {
+  createGroup,
+  getGroupsByWorkspace,
+  getGroupById,
+  updateGroup,
+  deleteGroup,
+  moveTaskToGroup,
+} from "../Controller/GroupController.js";
 
-router.post("/group", createGroup)
-router.get("/getgroupsforworkspace", getGroupsByWorkspace)
+const router = Router();
 
-export default router
+router.post("/groups", authenticateToken, createGroup);
+router.get(
+  "/groups/workspace/:workId",
+  authenticateToken,
+  getGroupsByWorkspace
+);
+router.get("/groups/:id", authenticateToken, getGroupById);
+router.put("/groups/:id", authenticateToken, updateGroup);
+router.delete("/groups/:id", authenticateToken, deleteGroup);
+router.put("/groups/move-task", authenticateToken, moveTaskToGroup);
+
+export default router;

@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,90 +7,211 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+//
+// ==================== USER ====================
+//
+
 model User {
-  id          Int              @id @default(autoincrement())
-  name        String?
-  email       String           @unique
-  password    String
-  workspace   Workspace?       @relation(fields: [work_id], references: [id])
-  group       Group?           @relation(fields: [group_id], references: [id])
-  group_id    Int?
-  work_id     Int?
-  createdTask Task[]           @relation("TaskCreator")
-  assignments TaskAssignment[]
-  created_at  DateTime         @default(now())
+  id       Int     @id @default(autoincrement())
+  name     String?
+  email    String  @unique
+  password String
+
+  // Workspace membership
+  workspaceMembers WorkspaceMember[]
+
+  // Group membership
+  groupMembers GroupMember[]
+
+  // Task interactions
+  createdTasks   Task[]           @relation("TaskCreator")
+  assignments    TaskAssignment[]
+  followers      TaskFollower[]
+  taskActivities TaskActivity[]
+
+  createdAt DateTime @default(now())
 }
+
+//
+// ==================== WORKSPACE ====================
+//
 
 model Workspace {
   id          Int      @id @default(autoincrement())
   name        String
-  user        User[]
-  group       Group[]
-  task        Task[]
+  description String?
   tags        String?
-  description String?
-  created_at  DateTime @default(now())
+  createdAt   DateTime @default(now())
+
+  // Relations
+  members WorkspaceMember[]
+  groups  Group[]           @relation("WorkspaceGroups")
+  tasks   Task[]
 }
 
-model Group {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String?
-  task        Task[]
-  user        User[]
-  workspace   Workspace @relation(fields: [work_id], references: [id])
-  work_id     Int
-  createdAt   DateTime  @default(now())
-}
+//
+// ==================== WORKSPACE MEMBER ====================
+//
 
-model Task {
-  id          Int       @id @default(autoincrement())
-  name        String
-  description String?
-  dueDate     DateTime? // Made optional and renamed for consistency
-  priority    Priority  @default(NORMAL)
-
-  // Group relationship (required - every task must be in a group)
-  groupId Int
-  group   Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
-
-  // Workspace relationship (for easier querying)
+model WorkspaceMember {
+  id          Int           @id @default(autoincrement())
   workspaceId Int
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  userId      Int
+  role        WorkspaceRole @default(MEMBER)
 
-  // Creator relationship (optional)
-  createdById Int?
-  createdBy   User? @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
-
-  // Assignments
-  assignments TaskAssignment[]
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+
+  @@unique([workspaceId, userId])
+}
+
+enum WorkspaceRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+//
+// ==================== GROUP ====================
+//
+
+model Group {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+  workId      Int
+
+  workspace Workspace     @relation("WorkspaceGroups", fields: [workId], references: [id], onDelete: Cascade)
+  tasks     Task[]
+  members   GroupMember[]
+
+  createdAt DateTime @default(now())
+}
+
+//
+// ==================== GROUP MEMBER ====================
+//
+
+model GroupMember {
+  id      Int @id @default(autoincrement())
+  groupId Int
+  userId  Int
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+//
+// ==================== TASK ====================
+//
+
+model Task {
+  id          Int        @id @default(autoincrement())
+  name        String
+  description String?
+  priority    Priority   @default(NORMAL)
+  status      TaskStatus @default(TODO)
+  dueDate     DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  groupId     Int
+  workspaceId Int
+  createdById Int?
+
+  group     Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  assignments  TaskAssignment[]
+  followers    TaskFollower[]
+  activityLogs TaskActivity[]
 
   @@index([groupId])
   @@index([workspaceId])
-  @@index([createdById])
   @@index([priority])
-  @@index([dueDate])
+  @@index([status])
 }
 
-model TaskAssignment {
-  id     Int   @id @default(autoincrement())
-  taskId Int
-  userId Int
-  task   Task  @relation(fields: [taskId], references: [id])
-  user   User  @relation(fields: [userId], references: [id])
-  role   Roles @default(ASSIGNEE)
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  REVIEW
+  COMPLETED
 }
 
 enum Priority {
+  URGENT
   HIGH
-  NORMAL // Default
+  NORMAL
   LOW
 }
 
-enum Roles {
+//
+// ==================== TASK ASSIGNMENT ====================
+//
+
+model TaskAssignment {
+  id     Int            @id @default(autoincrement())
+  taskId Int
+  userId Int
+  role   AssignmentRole @default(ASSIGNEE)
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+}
+
+enum AssignmentRole {
   ASSIGNEE
   REVIEWER
+  WATCHER
+}
+
+//
+// ==================== TASK FOLLOWER ====================
+//
+
+model TaskFollower {
+  id     Int @id @default(autoincrement())
+  taskId Int
+  userId Int
+
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([taskId, userId])
+}
+
+//
+// ==================== TASK ACTIVITY LOG ====================
+//
+
+model TaskActivity {
+  id        Int          @id @default(autoincrement())
+  taskId    Int
+  userId    Int?
+  action    ActivityType
+  detail    String?
+  createdAt DateTime     @default(now())
+
+  task Task  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+enum ActivityType {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+  COMMENT
+  ASSIGNED
+  UNASSIGNED
+  MOVED
 }
