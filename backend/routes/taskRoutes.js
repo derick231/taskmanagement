@@ -1,10 +1,32 @@
 import { Router } from "express";
-import { createTask} from "../Controller/TaskController.js";
+import { authenticateToken } from "../middleware/authMiddleware.js";
 
-const router = Router()
+import {
+  createTask,
+  getTasksByWorkspace,
+  getTasksByGroup,
+  getTaskById,
+  moveTaskToGroup,
+  assignUsersToTask,
+  removeUserFromTask,
+  deleteTask,
+} from "../Controller/TaskController.js";
 
-router.post("/tasks", createTask)
+const router = Router();
 
+router.post("/tasks", authenticateToken, createTask);
+router.get(
+  "/tasks/workspace/:workspaceId",
+  authenticateToken,
+  getTasksByWorkspace
+);
+router.get("/tasks/group/:groupId", authenticateToken, getTasksByGroup);
+router.get("/tasks/:id", authenticateToken, getTaskById);
 
+router.put("/tasks/move", authenticateToken, moveTaskToGroup);
+router.post("/tasks/:id/assign", authenticateToken, assignUsersToTask);
+router.delete("/tasks/assign/remove", authenticateToken, removeUserFromTask);
 
-export default router
+router.delete("/tasks/:id", authenticateToken, deleteTask);
+
+export default router;
