@@ -5,6 +5,7 @@ import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import WorkspacePage from "./pages/WorkspacePage";
 import CreateWorkSpace from "./pages/CreateWorkSpace";
+import Messages from "./pages/Messages";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
           <Route path="/" element={<LandingPage />} />
           <Route path="/dashboard" element={<Homepage />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/messages" element={<Messages />} />
           <Route path="/workspace/:id" element={<WorkspacePage />} />
           <Route path="/workspace/create" element={<CreateWorkSpace />} />
         </Routes>
