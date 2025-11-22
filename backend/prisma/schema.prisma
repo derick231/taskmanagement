@@ -29,6 +29,10 @@ model User {
   followers      TaskFollower[]
   taskActivities TaskActivity[]
 
+  // Chat relations
+  chatRoomMembers ChatRoomMember[]
+  messages        Message[]
+
   createdAt DateTime @default(now())
 }
 
@@ -47,6 +51,9 @@ model Workspace {
   members WorkspaceMember[]
   groups  Group[]           @relation("WorkspaceGroups")
   tasks   Task[]
+
+  // Chat
+  chatRooms ChatRoom[]
 }
 
 //
@@ -87,6 +94,9 @@ model Group {
   workspace Workspace     @relation("WorkspaceGroups", fields: [workId], references: [id], onDelete: Cascade)
   tasks     Task[]
   members   GroupMember[]
+
+  // Group chat
+  chatRooms ChatRoom[]
 
   createdAt DateTime @default(now())
 }
@@ -214,4 +224,55 @@ enum ActivityType {
   ASSIGNED
   UNASSIGNED
   MOVED
+}
+
+//
+// ==================== CHAT SYSTEM ====================
+//
+
+model ChatRoom {
+  id          Int          @id @default(autoincrement())
+  type        ChatRoomType
+  workspaceId Int?
+  groupId     Int?
+
+  members  ChatRoomMember[]
+  messages Message[]
+
+  workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  group     Group?     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum ChatRoomType {
+  WORKSPACE // entire workspace chat
+  GROUP // inside group chat
+  PERSONAL // 1-to-1 chat
+}
+
+model ChatRoomMember {
+  id     Int @id @default(autoincrement())
+  roomId Int
+  userId Int
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([roomId, userId])
+}
+
+model Message {
+  id         Int      @id @default(autoincrement())
+  roomId     Int
+  senderId   Int
+  text       String?
+  attachment String?
+  createdAt  DateTime @default(now())
+
+  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  sender User     @relation(fields: [senderId], references: [id], onDelete: Cascade)
 }

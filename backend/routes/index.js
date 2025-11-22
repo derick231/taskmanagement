@@ -1,16 +1,16 @@
 import { Router } from "express";
-import UserRoutes from './userRoutes.js'
-import WorkRoutes from './workRoutes.js'
-import GroupRoutes from './GroupRoutes.js'
-import TasksRoutes from './taskRoutes.js'
+import UserRoutes from "./userRoutes.js";
+import WorkRoutes from "./workRoutes.js";
+import GroupRoutes from "./GroupRoutes.js";
+import TasksRoutes from "./taskRoutes.js";
+import ChatRoutes from "./chatRoute.js";
 
-const router = Router()
+const router = Router();
 
-router.use("/", UserRoutes)
-router.use("/",WorkRoutes)
-router.use('/',GroupRoutes)
-router.use('/',TasksRoutes)
+router.use("/", UserRoutes);
+router.use("/", WorkRoutes);
+router.use("/", GroupRoutes);
+router.use("/", TasksRoutes);
+router.use("/", ChatRoutes);
 
-
-
-export default router
+export default router;
