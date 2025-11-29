@@ -5,6 +5,8 @@ import http from "http";
 import { Server } from "socket.io";
 import routes from "./routes/index.js";
 
+import { setupSocketHandlers } from "./socketHandlers.js";
+
 const app = express();
 const server = http.createServer(app);
 
@@ -12,18 +14,15 @@ const io = new Server(server, {
   cors: {
     origin: ["http://localhost:3000", "http://localhost:5173", "*"],
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    credentials: true,
   },
 });
 
+// Make io accessible to routes
 app.set("io", io);
 
-io.on("connection", (socket) => {
-  socket.on("join_room", (roomId) => {
-    socket.join(`room_${roomId}`);
-  });
-
-  socket.on("disconnect", () => {});
-});
+// Setup Socket.IO handlers
+setupSocketHandlers(io);
 
 app.use(
   cors({
