@@ -17,11 +17,16 @@ model User {
   email    String  @unique
   password String
 
-  // Workspace membership
-  workspaceMembers WorkspaceMember[]
+  // Organization relations
+  ownedOrganizations  Organization[]       @relation("OrganizationOwner")
+  organizationMembers OrganizationMember[]
 
-  // Group membership
-  groupMembers GroupMember[]
+  // Workspace relations
+  workspaceMembers WorkspaceMember[]
+  managedWorkspaces Workspace[]      @relation("WorkspaceManager")
+
+  // Board membership
+  boardMembers BoardMember[]
 
   // Task interactions
   createdTasks   Task[]           @relation("TaskCreator")
@@ -37,23 +42,68 @@ model User {
 }
 
 //
+// ==================== ORGANIZATION ====================
+//
+
+model Organization {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  slug        String   @unique
+  ownerId     Int
+
+  owner      User                 @relation("OrganizationOwner", fields: [ownerId], references: [id])
+  members    OrganizationMember[]
+  workspaces Workspace[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrganizationMember {
+  id             Int              @id @default(autoincrement())
+  organizationId Int
+  userId         Int
+  role           OrganizationRole @default(MEMBER)
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([organizationId, userId])
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+//
 // ==================== WORKSPACE ====================
 //
 
 model Workspace {
-  id          Int      @id @default(autoincrement())
-  name        String
-  description String?
-  tags        String?
-  createdAt   DateTime @default(now())
+  id             Int      @id @default(autoincrement())
+  name           String
+  description    String?
+  slug           String
+  tags           String?
+  organizationId Int
+  managerId      Int
 
-  // Relations
-  members WorkspaceMember[]
-  groups  Group[]           @relation("WorkspaceGroups")
-  tasks   Task[]
+  organization Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  manager      User              @relation("WorkspaceManager", fields: [managerId], references: [id])
+  members      WorkspaceMember[]
+  boards       Board[]
+  tasks        Task[]
+  chatRooms    ChatRoom[]
 
-  // Chat
-  chatRooms ChatRoom[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([organizationId, slug])
 }
 
 //
@@ -75,45 +125,46 @@ model WorkspaceMember {
 }
 
 enum WorkspaceRole {
-  OWNER
-  ADMIN
+  MANAGER
   MEMBER
   VIEWER
 }
 
 //
-// ==================== GROUP ====================
+// ==================== BOARD (formerly Group) ====================
 //
 
-model Group {
+model Board {
   id          Int     @id @default(autoincrement())
   name        String
   description String?
-  workId      Int
+  position    Int     @default(0)
+  workspaceId Int
 
-  workspace Workspace     @relation("WorkspaceGroups", fields: [workId], references: [id], onDelete: Cascade)
+  workspace Workspace     @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   tasks     Task[]
-  members   GroupMember[]
-
-  // Group chat
+  members   BoardMember[]
   chatRooms ChatRoom[]
 
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 //
-// ==================== GROUP MEMBER ====================
+// ==================== BOARD MEMBER ====================
 //
 
-model GroupMember {
+model BoardMember {
   id      Int @id @default(autoincrement())
-  groupId Int
+  boardId Int
   userId  Int
 
-  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  board Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
   user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([groupId, userId])
+  createdAt DateTime @default(now())
+
+  @@unique([boardId, userId])
 }
 
 //
@@ -130,11 +181,11 @@ model Task {
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
 
-  groupId     Int
+  boardId     Int
   workspaceId Int
   createdById Int?
 
-  group     Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  board     Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   createdBy User?     @relation("TaskCreator", fields: [createdById], references: [id], onDelete: SetNull)
 
@@ -142,7 +193,7 @@ model Task {
   followers    TaskFollower[]
   activityLogs TaskActivity[]
 
-  @@index([groupId])
+  @@index([boardId])
   @@index([workspaceId])
   @@index([priority])
   @@index([status])
@@ -176,6 +227,8 @@ model TaskAssignment {
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  createdAt DateTime @default(now())
+
   @@unique([taskId, userId])
 }
 
@@ -196,6 +249,8 @@ model TaskFollower {
 
   task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
 
   @@unique([taskId, userId])
 }
@@ -234,13 +289,13 @@ model ChatRoom {
   id          Int          @id @default(autoincrement())
   type        ChatRoomType
   workspaceId Int?
-  groupId     Int?
+  boardId     Int?
 
   members  ChatRoomMember[]
   messages Message[]
 
   workspace Workspace? @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  group     Group?     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  board     Board?     @relation(fields: [boardId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -248,8 +303,8 @@ model ChatRoom {
 
 enum ChatRoomType {
   WORKSPACE // entire workspace chat
-  GROUP // inside group chat
-  PERSONAL // 1-to-1 chat
+  BOARD     // inside board chat
+  PERSONAL  // 1-to-1 chat
 }
 
 model ChatRoomMember {

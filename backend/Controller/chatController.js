@@ -1,6 +1,6 @@
-const { PrismaClient } = require("@prisma/client");
-
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+
 
 export const createOrGetPersonalChat = async (req, res) => {
   try {
@@ -70,29 +70,29 @@ export const createWorkspaceChat = async (req, res) => {
   }
 };
 
-export const createGroupChat = async (req, res) => {
+export const createBoardChat = async (req, res) => {
   try {
-    const { groupId } = req.body;
+    const { boardId } = req.body;
 
-    if (!groupId)
-      return res.status(400).json({ message: "Group ID required." });
+    if (!boardId)
+      return res.status(400).json({ message: "Board ID required." });
 
     let room = await prisma.chatRoom.findFirst({
-      where: { groupId, type: "GROUP" },
+      where: { boardId, type: "BOARD" },
     });
 
     if (room) return res.json(room);
 
     room = await prisma.chatRoom.create({
       data: {
-        type: "GROUP",
-        groupId,
+        type: "BOARD",
+        boardId,
       },
     });
 
     res.json(room);
   } catch (err) {
-    console.error("Error createGroupChat:", err);
+    console.error("Error createBoardChat:", err);
     res.status(500).json({ message: "Internal server error" });
   }
 };

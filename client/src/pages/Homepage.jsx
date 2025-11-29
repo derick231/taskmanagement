@@ -1,31 +1,19 @@
 import {
   Plus,
-  Bell,
-  Home,
-  MessageSquare,
-  Calendar,
-  LogOut,
-  Sparkles,
-  ChevronLeft,
-  ChevronRight,
-  FolderOpen,
-  Loader2,
-  AlertCircle,
   TrendingUp,
   Clock,
   CheckCircle2,
   Users,
   BarChart3,
   ArrowRight,
+  FolderOpen,
 } from "lucide-react";
-
-// Sidebar Component
 import Sidebar from "../components/Sidebar";
 
 // Main Content Component
 const MainContent = () => {
   return (
-    <div className="flex-1 bg-gray-50 overflow-auto ">
+    <div className="flex-1 bg-gray-50 overflow-auto">
       {/* Header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
@@ -166,22 +154,20 @@ const MainContent = () => {
                     <h3 className="font-medium text-gray-900">{task.title}</h3>
                     <div className="flex items-center space-x-3 mt-1">
                       <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          task.status === "In Progress"
+                        className={`text-xs px-2 py-1 rounded-full font-medium ${task.status === "In Progress"
                             ? "bg-yellow-100 text-yellow-800"
                             : "bg-gray-100 text-gray-800"
-                        }`}
+                          }`}
                       >
                         {task.status}
                       </span>
                       <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${
-                          task.priority === "High"
+                        className={`text-xs px-2 py-1 rounded-full font-medium ${task.priority === "High"
                             ? "bg-red-100 text-red-800"
                             : task.priority === "Medium"
-                            ? "bg-orange-100 text-orange-800"
-                            : "bg-green-100 text-green-800"
-                        }`}
+                              ? "bg-orange-100 text-orange-800"
+                              : "bg-green-100 text-green-800"
+                          }`}
                       >
                         {task.priority}
                       </span>
@@ -263,20 +249,9 @@ const MainContent = () => {
 
 // Main App Component
 const TaskFlowHomepage = () => {
-  const handleWorkspaceClick = (workspaceId, workspaceName) => {
-    console.log(`Clicked workspace: ${workspaceName} (ID: ${workspaceId})`);
-  };
-
-  const handleGroupClick = (workspaceId, groupId, groupName) => {
-    console.log(`Clicked group: ${groupName} in workspace ${workspaceId}`);
-  };
-
   return (
     <div className="flex h-screen bg-gray-100">
-      <Sidebar
-        onWorkspaceClick={handleWorkspaceClick}
-        onGroupClick={handleGroupClick}
-      />
+      <Sidebar />
       <MainContent />
     </div>
   );

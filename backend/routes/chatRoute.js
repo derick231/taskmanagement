@@ -2,17 +2,17 @@ import { Router } from "express";
 import {
   createOrGetPersonalChat,
   createWorkspaceChat,
-  createGroupChat,
+  createBoardChat,
   sendMessage,
   getMessages,
   getUserChatRooms,
-} from "../Controller/chatController";
+} from "../Controller/chatController.js";
 
 const router = Router();
 
 router.post("/personal", createOrGetPersonalChat);
 router.post("/workspace", createWorkspaceChat);
-router.post("/group", createGroupChat);
+router.post("/board", createBoardChat);
 
 router.post("/message", sendMessage);
 

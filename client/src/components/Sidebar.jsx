@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from "react";
 import {
   Plus,
-  Bell,
   Home,
   MessageSquare,
-  Calendar,
   LogOut,
   Sparkles,
   ChevronLeft,
@@ -14,53 +12,19 @@ import {
   AlertCircle,
   RefreshCw,
   Settings,
-  Users,
 } from "lucide-react";
+import OrganizationSelector from "./OrganizationSelector";
+
+const API_BASE_URL = "http://localhost:3000";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState("dashboard");
   const [workspaces, setWorkspaces] = useState([]);
+  const [user, setUser] = useState(null);
+  const [currentOrg, setCurrentOrg] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [user, setUser] = useState(null);
-
-  // API configuration
-  const API_BASE_URL = "http://localhost:3000";
-
-  // Navigation items with redirect paths
-  const navItems = [
-    {
-      id: "dashboard",
-      icon: Home,
-      label: "Dashboard",
-      path: "/dashboard",
-      count: null,
-    },
-    {
-      id: "notifications",
-      icon: Bell,
-      label: "Notifications",
-      path: "/notifications",
-      count: 3,
-    },
-    {
-      id: "messages",
-      icon: MessageSquare,
-      label: "Messages",
-      path: "/messages",
-      count: 5,
-    },
-    {
-      id: "calendar",
-      icon: Calendar,
-      label: "Calendar",
-      path: "/calendar",
-      count: null,
-    },
-  ];
-
-  // Get authentication token
   const getAuthToken = () => {
     return (
       localStorage.getItem("authToken") ||
@@ -123,65 +87,6 @@ const Sidebar = () => {
 
       return { data: await response.json() };
     },
-
-    put: async (endpoint, data = {}) => {
-      const token = getAuthToken();
-      console.log(`Making PUT request to: ${API_BASE_URL}${endpoint}`);
-
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (response.status === 401 || response.status === 403) {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = "/login";
-        throw new Error("Session expired. Please login again.");
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || errorData.error || `HTTP ${response.status}`
-        );
-      }
-
-      return { data: await response.json() };
-    },
-
-    delete: async (endpoint) => {
-      const token = getAuthToken();
-      console.log(`Making DELETE request to: ${API_BASE_URL}${endpoint}`);
-
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (response.status === 401 || response.status === 403) {
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = "/login";
-        throw new Error("Session expired. Please login again.");
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || errorData.error || `HTTP ${response.status}`
-        );
-      }
-
-      return { data: await response.json() };
-    },
   };
 
   // Fetch workspaces from backend
@@ -203,6 +108,13 @@ const Sidebar = () => {
         workspacesData = response.data;
       } else {
         workspacesData = [];
+      }
+
+      // Filter by current organization if selected
+      if (currentOrg) {
+        workspacesData = workspacesData.filter(
+          (w) => w.organizationId === currentOrg.id
+        );
       }
 
       // Transform workspace data to ensure consistency
@@ -241,38 +153,13 @@ const Sidebar = () => {
   // Fetch user profile from API
   const fetchUserProfile = async () => {
     try {
-      const response = await apiClient.get("/auth/profile");
-      const userData = response.data.user || response.data;
-      setUser(userData);
-      localStorage.setItem("user", JSON.stringify(userData));
+      // Assuming user data is stored in localStorage from login
+      const userData = JSON.parse(localStorage.getItem("user"));
+      if (userData) {
+        setUser(userData);
+      }
     } catch (err) {
       console.error("Error fetching user profile:", err);
-      fetchUserInfo();
-    }
-  };
-
-  // Get user information from localStorage (fallback)
-  const fetchUserInfo = () => {
-    try {
-      const userData =
-        localStorage.getItem("user") || sessionStorage.getItem("user");
-      if (userData) {
-        const parsedUser = JSON.parse(userData);
-        setUser(parsedUser);
-      } else {
-        setUser({
-          name: "User",
-          email: "user@example.com",
-          role: "member",
-        });
-      }
-    } catch (error) {
-      console.error("Error parsing user data:", error);
-      setUser({
-        name: "User",
-        email: "user@example.com",
-        role: "member",
-      });
     }
   };
 
@@ -333,27 +220,9 @@ const Sidebar = () => {
 
   const handleLogout = async () => {
     if (window.confirm("Are you sure you want to logout?")) {
-      try {
-        console.log("Logging out user...");
-
-        try {
-          await apiClient.post("/auth/logout");
-        } catch (err) {
-          console.log(
-            "Logout API call failed, but continuing with client-side logout",
-            err
-          );
-        }
-
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = "/login";
-      } catch (err) {
-        console.error("Logout error:", err);
-        localStorage.clear();
-        sessionStorage.clear();
-        window.location.href = "/login";
-      }
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "/auth";
     }
   };
 
@@ -373,30 +242,23 @@ const Sidebar = () => {
       setError("Please login to access your workspaces");
       console.log("No authentication token found");
     }
-  }, []);
-
-  // Auto-refresh workspaces every 5 minutes
-  useEffect(() => {
-    const token = getAuthToken();
-    if (token) {
-      const interval = setInterval(() => {
-        console.log("Auto-refreshing workspaces...");
-        fetchWorkspaces();
-      }, 5 * 60 * 1000);
-
-      return () => clearInterval(interval);
-    }
-  }, []);
+  }, [currentOrg]); // Re-fetch when org changes
 
   return (
     <div
-      className={`bg-white border-r border-gray-200 h-screen flex flex-col transition-all duration-300 ${
-        isCollapsed ? "w-16" : "w-72"
-      }`}
+      className={`bg-white border-r border-gray-200 h-screen flex flex-col transition-all duration-300 ${isCollapsed ? "w-16" : "w-72"
+        }`}
     >
       {/* Header */}
-      <div className="p-4 border-b border-gray-100">
-        <div className="flex items-center justify-between">
+      <div className="border-b border-gray-100">
+        {!isCollapsed && (
+          <OrganizationSelector
+            user={user}
+            currentOrg={currentOrg}
+            onOrgChange={setCurrentOrg}
+          />
+        )}
+        <div className="p-4 flex items-center justify-between">
           {!isCollapsed && (
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
@@ -430,45 +292,33 @@ const Sidebar = () => {
           </div>
         )}
 
-        {/* Navigation Items */}
-        <div className="space-y-1 px-3">
-          {navItems.map((item) => (
+        {/* Main Navigation Links */}
+        <div className="px-3 mb-6">
+          {[
+            { id: "dashboard", label: "Dashboard", icon: Home, path: "/dashboard" },
+            { id: "messages", label: "Messages", icon: MessageSquare, path: "/messages" }
+          ].map((item) => (
             <button
               key={item.id}
               onClick={() => handleNavItemClick(item)}
-              className={`w-full flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-all hover:bg-gray-50 ${
-                activeItem === item.id
-                  ? "bg-violet-50 text-violet-700 border border-violet-200"
-                  : "text-gray-600"
-              } ${isCollapsed ? "justify-center" : ""}`}
+              className={`w-full flex items-center px-3 py-2.5 mb-1 text-sm font-medium rounded-lg transition-all duration-200 group ${activeItem === item.id
+                ? "bg-violet-50 text-violet-700 shadow-sm"
+                : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                } ${isCollapsed ? "justify-center" : ""}`}
               title={isCollapsed ? item.label : ""}
             >
               <item.icon
-                className={`h-4 w-4 ${
-                  activeItem === item.id ? "text-violet-600" : "text-gray-500"
-                }`}
+                className={`h-5 w-5 transition-colors ${activeItem === item.id
+                  ? "text-violet-600"
+                  : "text-gray-400 group-hover:text-gray-600"
+                  } ${isCollapsed ? "" : "mr-3"}`}
               />
-              {!isCollapsed && (
-                <>
-                  <span className="ml-3">{item.label}</span>
-                  {item.count && (
-                    <span
-                      className={`ml-auto text-xs font-medium px-2 py-0.5 rounded-full ${
-                        activeItem === item.id
-                          ? "bg-violet-100 text-violet-700"
-                          : "bg-red-100 text-red-600"
-                      }`}
-                    >
-                      {item.count}
-                    </span>
-                  )}
-                </>
-              )}
+              {!isCollapsed && <span>{item.label}</span>}
             </button>
           ))}
         </div>
 
-        {/* Workspaces Section */}
+        {/* Navigation Items */}
         <div className="mt-6 px-3">
           {!isCollapsed && (
             <div className="flex items-center justify-between mb-3">
@@ -539,11 +389,10 @@ const Sidebar = () => {
                 <button
                   key={workspace.id}
                   onClick={() => handleWorkspaceClick(workspace)}
-                  className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all hover:bg-gray-50 ${
-                    activeItem === workspace.id
-                      ? "bg-violet-50 text-violet-700 border border-violet-200"
-                      : "text-gray-700"
-                  } ${isCollapsed ? "justify-center" : ""}`}
+                  className={`w-full flex items-center px-3 py-3 text-sm font-medium rounded-lg transition-all hover:bg-gray-50 ${activeItem === workspace.id
+                    ? "bg-violet-50 text-violet-700 border border-violet-200"
+                    : "text-gray-700"
+                    } ${isCollapsed ? "justify-center" : ""}`}
                   title={
                     isCollapsed
                       ? workspace.name
@@ -556,11 +405,10 @@ const Sidebar = () => {
                   {!isCollapsed && (
                     <>
                       <FolderOpen
-                        className={`h-4 w-4 ml-3 mr-3 ${
-                          activeItem === workspace.id
-                            ? "text-violet-600"
-                            : "text-gray-400"
-                        }`}
+                        className={`h-4 w-4 ml-3 mr-3 ${activeItem === workspace.id
+                          ? "text-violet-600"
+                          : "text-gray-400"
+                          }`}
                       />
                       <div className="flex-1 text-left min-w-0">
                         <div className="truncate font-medium">
@@ -574,11 +422,10 @@ const Sidebar = () => {
                       </div>
                       <div className="flex items-center space-x-1 ml-2">
                         <span
-                          className={`text-xs px-2 py-0.5 rounded-full ${
-                            activeItem === workspace.id
-                              ? "bg-violet-100 text-violet-700"
-                              : "bg-gray-100 text-gray-600"
-                          }`}
+                          className={`text-xs px-2 py-0.5 rounded-full ${activeItem === workspace.id
+                            ? "bg-violet-100 text-violet-700"
+                            : "bg-gray-100 text-gray-600"
+                            }`}
                         >
                           {workspace.taskCount}
                         </span>
@@ -609,11 +456,12 @@ const Sidebar = () => {
                     No workspaces yet
                   </p>
                   <p className="text-xs text-gray-400 mb-3">
-                    Create your first workspace to get started
+                    {currentOrg ? "Create a workspace in this org" : "Select an organization first"}
                   </p>
                   <button
                     onClick={handleAddWorkspace}
-                    className="px-3 py-2 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-700 transition-colors"
+                    disabled={!currentOrg}
+                    className="px-3 py-2 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-700 transition-colors disabled:opacity-50"
                   >
                     Create Workspace
                   </button>
@@ -651,9 +499,8 @@ const Sidebar = () => {
         <div className="space-y-1">
           <button
             onClick={handleSettings}
-            className={`w-full flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors ${
-              isCollapsed ? "justify-center" : ""
-            }`}
+            className={`w-full flex items-center px-3 py-2 text-sm font-medium text-gray-600 rounded-lg hover:bg-gray-100 transition-colors ${isCollapsed ? "justify-center" : ""
+              }`}
             title={isCollapsed ? "Settings" : ""}
           >
             <Settings className={`h-4 w-4 ${isCollapsed ? "" : "mr-3"}`} />
@@ -662,9 +509,8 @@ const Sidebar = () => {
 
           <button
             onClick={handleLogout}
-            className={`w-full flex items-center px-3 py-2 text-sm font-medium text-red-500 rounded-lg hover:bg-red-50 transition-colors ${
-              isCollapsed ? "justify-center" : ""
-            }`}
+            className={`w-full flex items-center px-3 py-2 text-sm font-medium text-red-500 rounded-lg hover:bg-red-50 transition-colors ${isCollapsed ? "justify-center" : ""
+              }`}
             title={isCollapsed ? "Logout" : ""}
           >
             <LogOut className={`h-4 w-4 ${isCollapsed ? "" : "mr-3"}`} />
