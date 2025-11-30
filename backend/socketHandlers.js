@@ -71,6 +71,9 @@ export const setupSocketHandlers = (io) => {
             const room = `room_${roomId}`;
             socket.join(room);
             console.log(`User ${socket.userId} joined chat ${room}`);
+
+            // Log all rooms this socket is in
+            console.log(`Socket ${socket.id} is now in rooms:`, Array.from(socket.rooms));
         });
 
         // Leave chat room

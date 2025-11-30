@@ -33,7 +33,7 @@ export const createUser = async (req, res) => {
             }
         })
 
-        
+
 
         return res.status(201).json({
             user: { id: newUser.id, name: newUser.name, email: newUser.email },
@@ -79,7 +79,7 @@ export const loginUser = async (req, res) => {
 
         return res.json({
             user: userWithoutPassword,
-            token:token,
+            token: token,
             message: "Login successful"
         })
 
@@ -89,20 +89,29 @@ export const loginUser = async (req, res) => {
     }
 }
 
-// Get all users (for admin/testing)
+// Get all users (for admin/testing) with optional search
 export const getUsers = async (req, res) => {
     try {
+        const { search } = req.query;
+
+        const whereClause = search
+            ? {
+                OR: [
+                    { name: { contains: search, mode: 'insensitive' } },
+                    { email: { contains: search, mode: 'insensitive' } }
+                ]
+            }
+            : {};
+
         const users = await prisma.user.findMany({
-            select: { id: true, name: true, email: true, createdAt: true } // Exclude passwords
-        })
+            where: whereClause,
+            select: { id: true, name: true, email: true, createdAt: true }, // Exclude passwords
+            take: 20 // Limit results
+        });
 
-        if (!users.length) {
-            return res.status(404).json({ error: "No users available" })
-        }
-
-        res.json(users)
+        res.json(users);
     } catch (error) {
-        console.error("Error fetching users:", error)
-        res.status(500).json({ error: "Internal server error" })
+        console.error("Error fetching users:", error);
+        res.status(500).json({ error: "Internal server error" });
     }
-}
+};
