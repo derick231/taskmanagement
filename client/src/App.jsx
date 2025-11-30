@@ -8,6 +8,7 @@ import WorkspacePage from "./pages/WorkspacePage";
 import CreateWorkSpace from "./pages/CreateWorkSpace";
 import Messages from "./pages/Messages";
 import CreateOrganization from "./pages/CreateOrganization";
+import OrganizationSettings from "./pages/OrganizationSettings";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             <Route path="/workspace/:id" element={<WorkspacePage />} />
             <Route path="/workspace/create" element={<CreateWorkSpace />} />
             <Route path="/create-organization" element={<CreateOrganization />} />
+            <Route path="/organizations/:id/settings" element={<OrganizationSettings />} />
           </Routes>
         </Router>
       </SocketProvider>

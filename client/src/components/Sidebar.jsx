@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Plus,
   Home,
@@ -18,6 +19,7 @@ import OrganizationSelector from "./OrganizationSelector";
 const API_BASE_URL = "http://localhost:3000";
 
 const Sidebar = () => {
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [activeItem, setActiveItem] = useState("dashboard");
   const [workspaces, setWorkspaces] = useState([]);
@@ -198,7 +200,7 @@ const Sidebar = () => {
     setActiveItem(item.id);
     console.log(`Navigating to: ${item.label} (${item.path})`);
     if (item.path) {
-      window.location.href = item.path;
+      navigate(item.path);
     }
   };
 
@@ -207,22 +209,22 @@ const Sidebar = () => {
     console.log(
       `Navigating to workspace: ${workspace.name} (ID: ${workspace.id})`
     );
-    window.location.href = `/workspace/${workspace.id}`;
+    navigate(`/workspace/${workspace.id}`);
   };
 
   const handleAddWorkspace = () => {
-    window.location.href = "/workspace/create";
+    navigate("/workspace/create");
   };
 
   const handleSettings = () => {
-    window.location.href = "/settings";
+    navigate("/settings");
   };
 
   const handleLogout = async () => {
     if (window.confirm("Are you sure you want to logout?")) {
       localStorage.clear();
       sessionStorage.clear();
-      window.location.href = "/auth";
+      navigate("/auth");
     }
   };
 

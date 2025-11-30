@@ -45,6 +45,13 @@ const ChatWindow = ({ room, user, onClose }) => {
 
         const handleNewMessage = (msg) => {
             console.log("Received new message:", msg);
+
+            // Ignore messages from current user (already handled by optimistic update)
+            if (msg.senderId === user.id) {
+                console.log("Ignoring own message from socket");
+                return;
+            }
+
             // Only add message if it's for the current room
             if (msg.roomId === room.id) {
                 setMessages((prev) => {
@@ -62,7 +69,7 @@ const ChatWindow = ({ room, user, onClose }) => {
         return () => {
             socket.off("new_message", handleNewMessage);
         };
-    }, [socket, room?.id]);
+    }, [socket, room?.id, user.id]);
 
     const loadMessages = async () => {
         if (!room?.id) return;

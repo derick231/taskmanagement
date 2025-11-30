@@ -308,6 +308,10 @@ export const updateTaskStatus = async (req, res) => {
     const { status } = req.body;
     const userId = req.user?.id;
 
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
+
     // Validate status
     const validStatuses = ["TODO", "IN_PROGRESS", "BLOCKED", "REVIEW", "COMPLETED"];
     if (!validStatuses.includes(status)) {
@@ -323,11 +327,7 @@ export const updateTaskStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: "Task not found" });
     }
 
-    // Check if user is manager or assigned to task
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: task.workspaceId },
-    });
-
+    // Check if user is a member of the workspace
     const member = await prisma.workspaceMember.findUnique({
       where: {
         workspaceId_userId: {
@@ -337,13 +337,11 @@ export const updateTaskStatus = async (req, res) => {
       },
     });
 
-    const isManager = workspace.managerId === userId || member?.role === "MANAGER";
-    const isAssigned = await prisma.taskAssignment.findFirst({
-      where: { taskId, userId },
-    });
-
-    if (!isManager && !isAssigned && task.createdById !== userId) {
-      return res.status(403).json({ success: false, message: "Access denied" });
+    if (!member) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You must be a workspace member to update tasks."
+      });
     }
 
     const updated = await prisma.task.update({
@@ -409,13 +407,17 @@ export const getMyTasks = async (req, res) => {
 };
 
 /* -----------------------------------------------------
-   UPDATE TASK (GENERAL)
+   UPDATE TASK (GENERAL) - Used by drag-and-drop
 ----------------------------------------------------- */
 export const updateTask = async (req, res) => {
   try {
     const taskId = Number(req.params.id);
     const { name, description, priority, dueDate, status } = req.body;
     const userId = req.user?.id;
+
+    if (!userId) {
+      return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
 
     const task = await prisma.task.findUnique({
       where: { id: taskId },
@@ -426,11 +428,7 @@ export const updateTask = async (req, res) => {
       return res.status(404).json({ success: false, message: "Task not found" });
     }
 
-    // Check permissions (Manager, Creator, or Assignee)
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: task.workspaceId },
-    });
-
+    // Check if user is a member of the workspace
     const member = await prisma.workspaceMember.findUnique({
       where: {
         workspaceId_userId: {
@@ -440,13 +438,11 @@ export const updateTask = async (req, res) => {
       },
     });
 
-    const isManager = workspace.managerId === userId || member?.role === "MANAGER";
-    const isAssigned = await prisma.taskAssignment.findFirst({
-      where: { taskId, userId },
-    });
-
-    if (!isManager && !isAssigned && task.createdById !== userId) {
-      return res.status(403).json({ success: false, message: "Access denied" });
+    if (!member) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied. You must be a workspace member to update tasks."
+      });
     }
 
     const updated = await prisma.task.update({

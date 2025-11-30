@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { X, Users, Search, Loader2 } from "lucide-react";
+import { X, Users, Search, Loader2, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useSocket } from "../context/SocketProvider";
 import ChatSidebar from "../components/ChatSidebar";
 import ChatWindow from "../components/ChatWindow";
 
 export default function Messages() {
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const authToken = localStorage.getItem("authToken");
 
@@ -47,18 +49,33 @@ export default function Messages() {
   };
 
   return (
-    <div className="h-screen flex bg-gray-50">
-      {/* Chat Sidebar */}
-      <ChatSidebar
-        rooms={rooms}
-        activeRoom={activeRoom}
-        onRoomSelect={handleRoomSelect}
-        onNewChat={handleNewChat}
-        user={user}
-      />
+    <div className="h-screen flex flex-col bg-gray-50">
+      {/* Header with Back Button */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3 flex items-center gap-3">
+        <button
+          onClick={() => navigate("/dashboard")}
+          className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+          title="Back to Dashboard"
+        >
+          <ArrowLeft className="h-5 w-5 text-gray-600" />
+        </button>
+        <h1 className="text-lg font-semibold text-gray-900">Messages</h1>
+      </div>
 
-      {/* Chat Window */}
-      <ChatWindow room={activeRoom} user={user} onRefreshRooms={fetchRooms} />
+      {/* Chat Content */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Chat Sidebar */}
+        <ChatSidebar
+          rooms={rooms}
+          activeRoom={activeRoom}
+          onRoomSelect={handleRoomSelect}
+          onNewChat={handleNewChat}
+          user={user}
+        />
+
+        {/* Chat Window */}
+        <ChatWindow room={activeRoom} user={user} onRefreshRooms={fetchRooms} />
+      </div>
 
       {/* New Chat Modal */}
       {showNewChatModal && (
