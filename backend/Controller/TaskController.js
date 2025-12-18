@@ -4,6 +4,93 @@ import { emitTaskUpdate } from "../socketHandlers.js";
 const prisma = new PrismaClient();
 
 /* -----------------------------------------------------
+   WEIGHTED SCORING ALGORITHM
+   Calculates priority score based on multiple factors:
+   - Priority Level: 40% weight
+   - Due Date Urgency: 30% weight
+   - Task Status: 20% weight
+   - Task Age: 10% weight
+----------------------------------------------------- */
+const calculateTaskScore = (task) => {
+  let score = 0;
+
+  // 1. Priority Weight (40 points max)
+  const priorityWeights = {
+    URGENT: 40,
+    HIGH: 30,
+    NORMAL: 20,
+    LOW: 10,
+  };
+  score += priorityWeights[task.priority] || 20;
+
+  // 2. Due Date Urgency (30 points max)
+  if (task.dueDate) {
+    const now = new Date();
+    const dueDate = new Date(task.dueDate);
+    const daysUntilDue = (dueDate - now) / (1000 * 60 * 60 * 24);
+
+    if (daysUntilDue < 0) {
+      // Overdue - highest urgency
+      score += 30;
+    } else if (daysUntilDue <= 1) {
+      // Due today or tomorrow
+      score += 25;
+    } else if (daysUntilDue <= 3) {
+      // Due within 3 days
+      score += 20;
+    } else if (daysUntilDue <= 7) {
+      // Due within a week
+      score += 15;
+    } else if (daysUntilDue <= 14) {
+      // Due within 2 weeks
+      score += 10;
+    } else {
+      // Due later
+      score += 5;
+    }
+  } else {
+    // No due date - neutral score
+    score += 10;
+  }
+
+  // 3. Status Weight (20 points max)
+  const statusWeights = {
+    BLOCKED: 20,      // Blocked tasks need immediate attention
+    IN_PROGRESS: 18,  // Active tasks should be completed
+    REVIEW: 15,       // Tasks in review are near completion
+    TODO: 12,         // New tasks waiting to start
+    COMPLETED: 0,     // Completed tasks have lowest priority
+  };
+  score += statusWeights[task.status] || 12;
+
+  // 4. Age Weight (10 points max)
+  // Older tasks get slightly higher priority to prevent stagnation
+  const now = new Date();
+  const createdDate = new Date(task.createdAt);
+  const ageInDays = (now - createdDate) / (1000 * 60 * 60 * 24);
+
+  if (ageInDays > 30) {
+    score += 10;
+  } else if (ageInDays > 14) {
+    score += 7;
+  } else if (ageInDays > 7) {
+    score += 5;
+  } else {
+    score += 3;
+  }
+
+  return Math.round(score);
+};
+
+// Add score to tasks array
+const addScoresToTasks = (tasks) => {
+  return tasks.map(task => ({
+    ...task,
+    priorityScore: calculateTaskScore(task),
+  })).sort((a, b) => b.priorityScore - a.priorityScore);
+};
+
+/* -----------------------------------------------------
    CREATE TASK
 ----------------------------------------------------- */
 export const createTask = async (req, res) => {
@@ -107,10 +194,12 @@ export const getTasksByWorkspace = async (req, res) => {
         board: true,
         assignments: { include: { user: true } },
       },
-      orderBy: { createdAt: "desc" },
     });
 
-    return res.json({ success: true, data: tasks });
+    // Apply weighted scoring algorithm
+    const scoredTasks = addScoresToTasks(tasks);
+
+    return res.json({ success: true, data: scoredTasks });
   } catch (error) {
     console.error("Workspace Tasks Error:", error);
     return res
@@ -132,10 +221,12 @@ export const getTasksByBoard = async (req, res) => {
         board: true,
         assignments: { include: { user: true } },
       },
-      orderBy: { createdAt: "desc" },
     });
 
-    return res.json({ success: true, data: tasks });
+    // Apply weighted scoring algorithm
+    const scoredTasks = addScoresToTasks(tasks);
+
+    return res.json({ success: true, data: scoredTasks });
   } catch (error) {
     console.error("Board Tasks Error:", error);
     return res
@@ -397,7 +488,10 @@ export const getMyTasks = async (req, res) => {
 
     const tasks = assignments.map((a) => a.task);
 
-    return res.json({ success: true, data: tasks });
+    // Apply weighted scoring algorithm
+    const scoredTasks = addScoresToTasks(tasks);
+
+    return res.json({ success: true, data: scoredTasks });
   } catch (error) {
     console.error("Get My Tasks Error:", error);
     return res
@@ -504,10 +598,12 @@ export const filterTasks = async (req, res) => {
         workspace: true,
         assignments: { include: { user: true } },
       },
-      orderBy: { createdAt: "desc" },
     });
 
-    return res.json({ success: true, data: tasks });
+    // Apply weighted scoring algorithm
+    const scoredTasks = addScoresToTasks(tasks);
+
+    return res.json({ success: true, data: scoredTasks });
   } catch (error) {
     console.error("Filter Tasks Error:", error);
     return res
