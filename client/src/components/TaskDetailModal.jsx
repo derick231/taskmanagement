@@ -195,6 +195,7 @@ export default function TaskDetailModal({ task, workspace, onClose, onUpdate, on
                             type="date"
                             value={formData.dueDate}
                             onChange={(e) => setFormData({ ...formData, dueDate: e.target.value })}
+                            min={new Date().toISOString().split("T")[0]}
                             className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent"
                         />
                     </div>

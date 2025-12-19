@@ -1,3 +1,4 @@
+import React, { useState, useEffect } from "react";
 import {
   Plus,
   TrendingUp,
@@ -10,8 +11,37 @@ import {
 } from "lucide-react";
 import Sidebar from "../components/Sidebar";
 
-// Main Content Component
 const MainContent = () => {
+  const [stats, setStats] = useState({
+    totalTasks: 0,
+    completedTasks: 0,
+    inProgressTasks: 0,
+    teamMembers: 0,
+  });
+  const [recentTasks, setRecentTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        const res = await fetch("http://localhost:3000/dashboard/stats", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const data = await res.json();
+        if (data.data) {
+          setStats(data.data.stats);
+          setRecentTasks(data.data.recentTasks);
+        }
+      } catch (err) {
+        console.error("Failed to fetch dashboard stats", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStats();
+  }, []);
+
   return (
     <div className="flex-1 bg-gray-50 overflow-auto">
       {/* Header */}
@@ -22,10 +52,7 @@ const MainContent = () => {
             <p className="text-gray-600">Let's make today productive</p>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="bg-violet-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-violet-700 transition-colors flex items-center space-x-2">
-              <Plus className="h-4 w-4" />
-              <span>New Task</span>
-            </button>
+            {/* New Task button removed */}
           </div>
         </div>
       </header>
@@ -33,12 +60,13 @@ const MainContent = () => {
       {/* Main Dashboard Content */}
       <main className="p-6">
         {/* Stats Cards */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg p-6 border border-gray-200">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Tasks</p>
-                <p className="text-3xl font-bold text-gray-900">25</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.totalTasks}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <BarChart3 className="h-6 w-6 text-blue-600" />
@@ -46,6 +74,7 @@ const MainContent = () => {
             </div>
             <div className="mt-4 flex items-center text-sm">
               <TrendingUp className="h-4 w-4 text-green-500 mr-1" />
+              {/* Trend data is hardcoded as we don't have historical data yet */}
               <span className="text-green-500 font-medium">12%</span>
               <span className="text-gray-600 ml-1">from last week</span>
             </div>
@@ -55,7 +84,7 @@ const MainContent = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Completed</p>
-                <p className="text-3xl font-bold text-gray-900">18</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.completedTasks}</p>
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <CheckCircle2 className="h-6 w-6 text-green-600" />
@@ -72,7 +101,7 @@ const MainContent = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">In Progress</p>
-                <p className="text-3xl font-bold text-gray-900">7</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.inProgressTasks}</p>
               </div>
               <div className="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
                 <Clock className="h-6 w-6 text-yellow-600" />
@@ -90,7 +119,7 @@ const MainContent = () => {
                 <p className="text-sm font-medium text-gray-600">
                   Team Members
                 </p>
-                <p className="text-3xl font-bold text-gray-900">12</p>
+                <p className="text-3xl font-bold text-gray-900">{stats.teamMembers}</p>
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <Users className="h-6 w-6 text-purple-600" />
@@ -107,7 +136,7 @@ const MainContent = () => {
         {/* Recent Tasks and Quick Actions */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Tasks */}
-          <div className="lg:col-span-2 bg-white rounded-lg border border-gray-200">
+          <div className="lg:col-span-3 bg-white rounded-lg border border-gray-200">
             <div className="p-6 border-b border-gray-200">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold text-gray-900">
@@ -120,127 +149,51 @@ const MainContent = () => {
               </div>
             </div>
             <div className="p-6 space-y-4">
-              {[
-                {
-                  title: "Update project documentation",
-                  status: "In Progress",
-                  priority: "High",
-                  dueDate: "Today",
-                },
-                {
-                  title: "Review team performance",
-                  status: "Todo",
-                  priority: "Medium",
-                  dueDate: "Tomorrow",
-                },
-                {
-                  title: "Prepare quarterly report",
-                  status: "In Progress",
-                  priority: "High",
-                  dueDate: "This week",
-                },
-                {
-                  title: "Client meeting preparation",
-                  status: "Todo",
-                  priority: "Low",
-                  dueDate: "Next week",
-                },
-              ].map((task, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-                >
-                  <div className="flex-1">
-                    <h3 className="font-medium text-gray-900">{task.title}</h3>
-                    <div className="flex items-center space-x-3 mt-1">
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${task.status === "In Progress"
+              {recentTasks.length === 0 ? (
+                <p className="text-gray-500 text-center py-4">No recent tasks</p>
+              ) : (
+                recentTasks.map((task, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
+                  >
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">{task.title}</h3>
+                      <div className="flex items-center space-x-3 mt-1">
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full font-medium ${task.status === "IN_PROGRESS"
                             ? "bg-yellow-100 text-yellow-800"
-                            : "bg-gray-100 text-gray-800"
-                          }`}
-                      >
-                        {task.status}
-                      </span>
-                      <span
-                        className={`text-xs px-2 py-1 rounded-full font-medium ${task.priority === "High"
+                            : task.status === "COMPLETED"
+                              ? "bg-green-100 text-green-800"
+                              : "bg-gray-100 text-gray-800"
+                            }`}
+                        >
+                          {task.status}
+                        </span>
+                        <span
+                          className={`text-xs px-2 py-1 rounded-full font-medium ${task.priority === "HIGH" || task.priority === "URGENT"
                             ? "bg-red-100 text-red-800"
-                            : task.priority === "Medium"
+                            : task.priority === "NORMAL"
                               ? "bg-orange-100 text-orange-800"
                               : "bg-green-100 text-green-800"
-                          }`}
-                      >
-                        {task.priority}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {task.dueDate}
-                      </span>
+                            }`}
+                        >
+                          {task.priority || "NORMAL"}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {task.dueDate ? new Date(task.dueDate).toLocaleDateString() : "No due date"}
+                        </span>
+                      </div>
                     </div>
+                    <button className="text-gray-400 hover:text-gray-600">
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
                   </div>
-                  <button className="text-gray-400 hover:text-gray-600">
-                    <ArrowRight className="h-4 w-4" />
-                  </button>
-                </div>
-              ))}
+                )))}
             </div>
           </div>
 
-          {/* Quick Actions */}
-          <div className="bg-white rounded-lg border border-gray-200">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Quick Actions
-              </h2>
-            </div>
-            <div className="p-6 space-y-3">
-              <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
-                <div className="w-10 h-10 bg-violet-100 rounded-lg flex items-center justify-center mr-3">
-                  <Plus className="h-5 w-5 text-violet-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Create Task</p>
-                  <p className="text-sm text-gray-500">
-                    Add a new task to your workspace
-                  </p>
-                </div>
-              </button>
-
-              <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center mr-3">
-                  <FolderOpen className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">New Workspace</p>
-                  <p className="text-sm text-gray-500">
-                    Create a new project workspace
-                  </p>
-                </div>
-              </button>
-
-              <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center mr-3">
-                  <Users className="h-5 w-5 text-green-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">Invite Team</p>
-                  <p className="text-sm text-gray-500">
-                    Add members to your workspace
-                  </p>
-                </div>
-              </button>
-
-              <button className="w-full flex items-center p-3 text-left hover:bg-gray-50 rounded-lg transition-colors">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center mr-3">
-                  <BarChart3 className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <p className="font-medium text-gray-900">View Reports</p>
-                  <p className="text-sm text-gray-500">
-                    Check your productivity stats
-                  </p>
-                </div>
-              </button>
-            </div>
-          </div>
+          {/* Quick Actions removed as per request */}
         </div>
       </main>
     </div>
@@ -248,7 +201,7 @@ const MainContent = () => {
 };
 
 // Main App Component
-const TaskFlowHomepage = () => {
+const TaskManagementHomepage = () => {
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar />
@@ -257,4 +210,4 @@ const TaskFlowHomepage = () => {
   );
 };
 
-export default TaskFlowHomepage;
+export default TaskManagementHomepage;

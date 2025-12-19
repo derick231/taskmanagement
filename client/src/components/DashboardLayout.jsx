@@ -85,7 +85,7 @@ export default function DashboardLayout({ children }) {
                 <div className="p-4 border-b border-gray-200">
                     <div className="flex items-center justify-between mb-4">
                         <h1 className="text-xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-                            TaskFlow
+                            TaskManagement
                         </h1>
                         <button
                             onClick={() => navigate("/create-organization")}
@@ -114,8 +114,8 @@ export default function DashboardLayout({ children }) {
                         <button
                             onClick={() => navigate("/dashboard")}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/dashboard")
-                                    ? "bg-violet-50 text-violet-600"
-                                    : "text-gray-600 hover:bg-gray-50"
+                                ? "bg-violet-50 text-violet-600"
+                                : "text-gray-600 hover:bg-gray-50"
                                 }`}
                         >
                             <Home className="h-4 w-4" />
@@ -124,8 +124,8 @@ export default function DashboardLayout({ children }) {
                         <button
                             onClick={() => navigate("/messages")}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${isActive("/messages")
-                                    ? "bg-violet-50 text-violet-600"
-                                    : "text-gray-600 hover:bg-gray-50"
+                                ? "bg-violet-50 text-violet-600"
+                                : "text-gray-600 hover:bg-gray-50"
                                 }`}
                         >
                             <MessageSquare className="h-4 w-4" />
@@ -175,8 +175,8 @@ export default function DashboardLayout({ children }) {
                                             setExpandedOrg(expandedOrg === org.id ? null : org.id);
                                         }}
                                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors ${selectedOrg?.id === org.id
-                                                ? "bg-violet-50 text-violet-600"
-                                                : "text-gray-700 hover:bg-gray-50"
+                                            ? "bg-violet-50 text-violet-600"
+                                            : "text-gray-700 hover:bg-gray-50"
                                             }`}
                                     >
                                         {expandedOrg === org.id ? (
@@ -201,8 +201,8 @@ export default function DashboardLayout({ children }) {
                                                         key={workspace.id}
                                                         onClick={() => navigate(`/workspace/${workspace.id}`)}
                                                         className={`w-full flex items-center gap-2 px-3 py-2 rounded-lg transition-colors text-left ${location.pathname === `/workspace/${workspace.id}`
-                                                                ? "bg-violet-100 text-violet-700"
-                                                                : "text-gray-600 hover:bg-gray-50"
+                                                            ? "bg-violet-100 text-violet-700"
+                                                            : "text-gray-600 hover:bg-gray-50"
                                                             }`}
                                                     >
                                                         <FolderOpen className="h-3.5 w-3.5 flex-shrink-0" />
@@ -241,6 +241,6 @@ export default function DashboardLayout({ children }) {
             <div className="flex-1 overflow-auto">
                 {children}
             </div>
-        </div>
+        </div >
     );
 }

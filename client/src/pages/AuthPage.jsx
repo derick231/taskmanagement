@@ -120,7 +120,7 @@ export default function AuthPage() {
           </div>
 
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome to Taskflow
+            Welcome to TaskManagement
           </h1>
           <p className="text-gray-600 mt-1">
             {isLogin
@@ -135,18 +135,16 @@ export default function AuthPage() {
           <div className="flex p-1 bg-gray-200 rounded-xl mb-8 gap-3">
             <button
               onClick={() => setIsLogin(true)}
-              className={`flex-1 py-2 rounded-lg font-medium transition ${
-                isLogin ? "bg-white shadow " : "text-gray-600"
-              }`}
+              className={`flex-1 py-2 rounded-lg font-medium transition ${isLogin ? "bg-white shadow " : "text-gray-600"
+                }`}
             >
               Sign In
             </button>
 
             <button
               onClick={() => setIsLogin(false)}
-              className={`flex-1 py-2 rounded-lg font-medium transition ${
-                !isLogin ? "bg-white shadow " : "text-gray-600"
-              }`}
+              className={`flex-1 py-2 rounded-lg font-medium transition ${!isLogin ? "bg-white shadow " : "text-gray-600"
+                }`}
             >
               Sign Up
             </button>
@@ -155,11 +153,10 @@ export default function AuthPage() {
           {/* MESSAGE */}
           {message.text && (
             <div
-              className={`p-4 mb-6 rounded-xl flex items-center gap-3 ${
-                message.type === "success"
-                  ? "bg-green-50 border border-green-200"
-                  : "bg-red-50 border border-red-200"
-              }`}
+              className={`p-4 mb-6 rounded-xl flex items-center gap-3 ${message.type === "success"
+                ? "bg-green-50 border border-green-200"
+                : "bg-red-50 border border-red-200"
+                }`}
             >
               {message.type === "success" ? (
                 <CheckCircle2 className="text-green-600" />
@@ -255,9 +252,8 @@ function AuthInput({ label, icon, error, ...props }) {
 
         <input
           {...props}
-          className={`w-full pl-12 pr-4 py-3 rounded-xl  bg-white/50 border focus:ring-2 focus:ring-violet-500 transition ${
-            error ? "border-red-300" : "border-gray-300"
-          }`}
+          className={`w-full pl-12 pr-4 py-3 rounded-xl  bg-white/50 border focus:ring-2 focus:ring-violet-500 transition ${error ? "border-red-300" : "border-gray-300"
+            }`}
         />
       </div>
       {error && (
@@ -288,9 +284,8 @@ function PasswordInput({
         <input
           {...props}
           type={showPassword ? "text" : "password"}
-          className={`w-full pl-12 pr-12 py-3 rounded-xl  bg-white/50 border focus:ring-2 focus:ring-violet-500 transition ${
-            error ? "border-red-300" : "border-gray-300"
-          }`}
+          className={`w-full pl-12 pr-12 py-3 rounded-xl  bg-white/50 border focus:ring-2 focus:ring-violet-500 transition ${error ? "border-red-300" : "border-gray-300"
+            }`}
         />
 
         <button

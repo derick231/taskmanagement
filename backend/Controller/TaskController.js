@@ -93,6 +93,9 @@ const addScoresToTasks = (tasks) => {
 /* -----------------------------------------------------
    CREATE TASK
 ----------------------------------------------------- */
+/* -----------------------------------------------------
+   CREATE TASK
+----------------------------------------------------- */
 export const createTask = async (req, res) => {
   try {
     const {
@@ -102,14 +105,27 @@ export const createTask = async (req, res) => {
       priority = "NORMAL",
       boardId,
       workspaceId,
-      createdById,
       assigneeIds = [],
     } = req.body;
+
+    const userId = req.user?.id; // Authenticated user ID
 
     if (!name || !boardId || !workspaceId) {
       return res
         .status(400)
         .json({ success: false, message: "Missing fields" });
+    }
+
+    // Validate Due Date
+    if (dueDate) {
+      const selectedDate = new Date(dueDate);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0); // Compare date only
+      if (selectedDate < now) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Due date cannot be in the past" });
+      }
     }
 
     // Validate board
@@ -139,7 +155,7 @@ export const createTask = async (req, res) => {
         priority,
         boardId: Number(boardId),
         workspaceId: Number(workspaceId),
-        createdById: createdById ? Number(createdById) : null,
+        createdById: userId ? Number(userId) : null, // Set creator to current user
       },
     });
 
@@ -152,6 +168,11 @@ export const createTask = async (req, res) => {
           role: "ASSIGNEE",
         })),
       });
+    } else if (userId) {
+      // OPTIONAL: Auto-assign creator if no one else is assigned?
+      // Let's NOT do this to keep logic clean, creator is enough for dashboard now.
+      // But dashboard logic I added checks for assignments OR createdById.
+      // So this is fine.
     }
 
     const fullTask = await prisma.task.findUnique({
@@ -168,7 +189,7 @@ export const createTask = async (req, res) => {
     if (io) {
       emitTaskUpdate(io, workspaceId, "task_created", {
         task: fullTask,
-        createdBy: createdById,
+        createdBy: userId,
       });
     }
 
@@ -511,6 +532,18 @@ export const updateTask = async (req, res) => {
 
     if (!userId) {
       return res.status(401).json({ success: false, message: "User not authenticated" });
+    }
+
+    // Validate Due Date
+    if (dueDate) {
+      const selectedDate = new Date(dueDate);
+      const now = new Date();
+      now.setHours(0, 0, 0, 0);
+      if (selectedDate < now) {
+        return res
+          .status(400)
+          .json({ success: false, message: "Due date cannot be in the past" });
+      }
     }
 
     const task = await prisma.task.findUnique({
