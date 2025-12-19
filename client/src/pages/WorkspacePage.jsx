@@ -111,7 +111,7 @@ export default function WorkspacePage() {
       const workspaceInfo = wsData.data || wsData;
       setWorkspace(workspaceInfo);
 
-      // Fetch boards for this workspace
+      // Fetch boards for this workspace (needed for creating new tasks)
       const boardsRes = await fetch(
         `http://localhost:3000/boards/workspace/${workspaceId}`,
         { headers: { Authorization: `Bearer ${authToken}` } }
@@ -119,21 +119,18 @@ export default function WorkspacePage() {
 
       if (boardsRes.ok) {
         const boardsData = await boardsRes.json();
-        const boardsList = boardsData.data || boardsData || [];
-        setBoards(boardsList);
+        setBoards(boardsData.data || boardsData || []);
+      }
 
-        // Extract all tasks from boards
-        const allTasks = boardsList.flatMap(board =>
-          (board.tasks || []).map(task => ({
-            ...task,
-            boardId: board.id
-          }))
-        );
-        setTasks(allTasks);
-      } else {
-        console.error("Failed to fetch boards");
-        setBoards([]);
-        setTasks([]);
+      // Fetch tasks directly to get them sorted by priority score
+      const tasksRes = await fetch(
+        `http://localhost:3000/tasks/workspace/${workspaceId}`,
+        { headers: { Authorization: `Bearer ${authToken}` } }
+      );
+
+      if (tasksRes.ok) {
+        const tasksData = await tasksRes.json();
+        setTasks(tasksData.data || []);
       }
     } catch (error) {
       console.error("Error fetching workspace data:", error);
