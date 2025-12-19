@@ -86,7 +86,7 @@ const LandingPage = () => {
       icon: <Target className="h-6 w-6" />,
       title: "Smart Task Creation",
       description:
-        "Create unlimited tasks with titles, descriptions, due dates, and priority levels. Organize everything with intelligent categorization - completely free forever.",
+        "Create unlimited tasks with titles, descriptions, due dates, and priority levels. Organize everything with intelligent categorization.",
       color: "from-violet-500 to-purple-600",
     },
     {
@@ -107,7 +107,7 @@ const LandingPage = () => {
       icon: <Workflow className="h-6 w-6" />,
       title: "Customizable Workflows",
       description:
-        "Create custom groups and workflow stages that fit your process. Kanban boards, lists, calendar views - all available to everyone for free.",
+        "Create custom groups and workflow stages that fit your process. Kanban boards, lists, calendar views - all available to everyone.",
       color: "from-pink-500 to-rose-600",
     },
     {
@@ -121,7 +121,7 @@ const LandingPage = () => {
       icon: <Shield className="h-6 w-6" />,
       title: "Secure & Private",
       description:
-        "Your data is encrypted and secure. We believe privacy should be accessible to everyone, not just those who can afford premium plans.",
+        "Your data is encrypted and secure. We believe privacy should be accessible to everyone.",
       color: "from-green-500 to-emerald-600",
     },
   ];
@@ -172,7 +172,7 @@ const LandingPage = () => {
       company: "University",
       avatar: "MS",
       content:
-        "As a student on a tight budget, Taskflow has been a lifesaver. I can organize all my assignments and group projects without worrying about subscription fees.",
+        "As a student, TaskManagement has been a lifesaver. I can organize all my assignments and group projects easily.",
     },
     {
       name: "Ahmed Hassan",
@@ -180,7 +180,7 @@ const LandingPage = () => {
       company: "Independent",
       avatar: "AH",
       content:
-        "Starting my freelance career, I needed something powerful but free. Taskflow gives me everything I need to manage multiple clients and projects.",
+        "Starting my freelance career, I needed something powerful. TaskManagement gives me everything I need to manage multiple clients and projects.",
     },
     {
       name: "Sarah Kim",
@@ -188,7 +188,7 @@ const LandingPage = () => {
       company: "Local NGO",
       avatar: "SK",
       content:
-        "Our small non-profit can't afford expensive tools. Taskflow helps us coordinate volunteers and manage community projects effectively - all for free!",
+        "Our small non-profit needs efficient tools. TaskManagement helps us coordinate volunteers and manage community projects effectively!",
     },
   ];
 
@@ -202,10 +202,7 @@ const LandingPage = () => {
               <div className="w-10 h-10 bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
                 <Sparkles className="h-5 w-5 text-white" />
               </div>
-              <h1 className="text-xl font-bold text-gray-900">Taskflow</h1>
-              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                100% FREE
-              </span>
+              <h1 className="text-xl font-bold text-gray-900">TaskManagement</h1>
             </div>
 
             {/* Desktop Navigation */}
@@ -239,7 +236,7 @@ const LandingPage = () => {
                 onClick={() => (window.location.href = "/auth")}
                 className="px-6 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-medium hover:from-violet-600 hover:to-purple-700 transition-all transform hover:scale-105"
               >
-                Start Using Free
+                Start Using
               </button>
             </div>
 
@@ -287,7 +284,7 @@ const LandingPage = () => {
                 onClick={() => (window.location.href = "/auth")}
                 className="w-full mt-2 px-4 py-2 bg-gradient-to-r from-violet-500 to-purple-600 text-white rounded-xl font-medium"
               >
-                Start Using Free
+                Start Using
               </button>
             </div>
           )}
@@ -300,9 +297,6 @@ const LandingPage = () => {
           <div className="space-y-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <span className="px-3 py-1 bg-green-100 text-green-800 text-sm font-semibold rounded-full">
-                  ✨ Forever Free
-                </span>
                 <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm font-semibold rounded-full">
                   No Limits
                 </span>
@@ -316,9 +310,8 @@ const LandingPage = () => {
               </h1>
               <p className="text-xl leading-relaxed text-gray-600">
                 We believe productivity tools should be accessible to everyone.
-                Taskflow provides enterprise-grade task management features
-                without any cost, forever. No hidden fees, no premium plans, no
-                limits.
+                TaskManagement provides enterprise-grade task management features
+                without any limits.
               </p>
             </div>
 
@@ -361,9 +354,6 @@ const LandingPage = () => {
                 <div className="flex items-center space-x-2">
                   <span className="text-sm px-3 py-1 rounded-full bg-violet-100 text-violet-700">
                     4 tasks
-                  </span>
-                  <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700">
-                    FREE
                   </span>
                 </div>
               </div>
@@ -447,13 +437,13 @@ const LandingPage = () => {
         <div className="max-w-7xl mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-3xl lg:text-4xl font-bold mb-6 text-gray-900">
-              Why is Taskflow Completely Free? 🤔
+              Why TaskManagement?
             </h2>
             <p className="text-lg text-gray-600 mb-8">
               We believe that everyone deserves access to powerful productivity
-              tools, regardless of their financial situation. Whether you're a
+              tools. Whether you're a
               student, starting freelancer, non-profit worker, or simply someone
-              who values free and open software - Taskflow is built for you.
+              who values open software - TaskManagement is built for you.
             </p>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="p-6 bg-white rounded-xl shadow-sm">
@@ -499,13 +489,12 @@ const LandingPage = () => {
               Enterprise Features
               <span className="bg-gradient-to-r from-violet-500 to-purple-600 bg-clip-text text-transparent">
                 {" "}
-                Without the Cost
+                For Everyone
               </span>
             </h2>
             <p className="text-xl max-w-3xl mx-auto text-gray-600">
               Get all the powerful features you need to manage tasks,
-              collaborate with teams, and boost productivity - completely free,
-              forever.
+              collaborate with teams, and boost productivity.
             </p>
           </div>
 
@@ -541,7 +530,7 @@ const LandingPage = () => {
             </h2>
             <p className="text-xl text-gray-600">
               Connect with thousands of users, share tips, get help, and
-              contribute to making Taskflow even better
+              contribute to making TaskManagement even better
             </p>
           </div>
 
@@ -579,7 +568,7 @@ const LandingPage = () => {
               <Code className="h-10 w-10 mb-4" />
               <h3 className="text-2xl font-bold mb-4">Contribute Code</h3>
               <p className="mb-6 opacity-90">
-                Help us build new features, fix bugs, and make Taskflow better
+                Help us build new features, fix bugs, and make TaskManagement better
                 for everyone. All skill levels welcome!
               </p>
               <button className="px-6 py-3 bg-white text-emerald-600 rounded-xl font-medium hover:bg-gray-100 transition-all">
@@ -598,7 +587,7 @@ const LandingPage = () => {
               Real Stories from Real Users
             </h2>
             <p className="text-xl text-gray-600">
-              See how Taskflow is helping people from all walks of life achieve
+              See how TaskManagement is helping people from all walks of life achieve
               their goals
             </p>
           </div>
@@ -752,13 +741,10 @@ const LandingPage = () => {
                 <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
                   <Sparkles className="h-4 w-4 text-white" />
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">Taskflow</h3>
-                <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
-                  FREE
-                </span>
+                <h3 className="text-lg font-bold text-gray-900">TaskManagement</h3>
               </div>
               <p className="text-gray-600">
-                Powerful task management for everyone. No limits, no costs, no
+                Powerful task management for everyone. No limits, no
                 compromise.
               </p>
               <div className="flex space-x-4">

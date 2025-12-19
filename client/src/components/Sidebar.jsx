@@ -266,7 +266,7 @@ const Sidebar = () => {
               <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-white" />
               </div>
-              <h1 className="text-lg font-bold text-gray-900">TaskFlow</h1>
+              <h1 className="text-lg font-bold text-gray-900">TaskManagement</h1>
             </div>
           )}
           <button
